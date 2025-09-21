@@ -1,0 +1,61 @@
+networks:
+  cassandra-network:
+    external: true
+
+services:
+  # Spark Master
+  spark-master:
+    image: apache/spark:3.4.1-scala2.12-java11-python3-ubuntu
+    container_name: spark-master
+    ports:
+      - "8080:8080"   # Spark Master UI
+      - "7077:7077"   # Spark Master port
+    networks:
+      - cassandra-network
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master --host 0.0.0.0
+
+  # Spark Worker
+  spark-worker:
+    image: apache/spark:3.4.1-scala2.12-java11-python3-ubuntu
+    container_name: spark-worker
+    depends_on:
+      - spark-master
+    ports:
+      - "8081:8081"
+    networks:
+      - cassandra-network
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+
+  # Spark Thrift Server
+  spark-thrift:
+    image: apache/spark:3.4.1-scala2.12-java11-python3-ubuntu
+    container_name: spark-thrift
+    user: root
+    ports:
+      - "10000:10000"  # Thrift server port
+      - "4040:4040"    # Spark UI
+    networks:
+      - cassandra-network
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_HOME=/opt/spark
+    command: >
+      bash -c "
+      mkdir -p /home/spark/.ivy2 &&
+      chmod 777 /home/spark/.ivy2 &&
+      /opt/spark/bin/spark-submit
+      --class org.apache.spark.sql.hive.thriftserver.HiveThriftServer2
+      --master spark://spark-master:7077
+      --packages com.datastax.spark:spark-cassandra-connector_2.12:3.5.1
+      --conf spark.cassandra.connection.host=cassandra100,cassandra101,cassandra102,cassandra110,cassandra200,cassandra201
+      --conf spark.cassandra.connection.port=9042
+      --conf spark.cassandra.connection.localDC=US_EAST
+      --conf spark.cassandra.connection.timeoutMS=60000
+      --conf spark.cassandra.read.timeoutMS=60000
+      --conf spark.sql.hive.thriftServer.singleSession=true
+      --conf spark.serializer=org.apache.spark.serializer.KryoSerializer
+      --driver-memory 1g
+      --executor-memory 1g
+      spark-internal
+      "

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourcePerFileMappings">
+    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/375687f8-47a5-4e48-ba52-be956fb8dac5/console.sql" value="375687f8-47a5-4e48-ba52-be956fb8dac5" />
+    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/6dc41ceb-c55d-43f9-82e5-90ef5ecc5503/console.sql" value="6dc41ceb-c55d-43f9-82e5-90ef5ecc5503" />
+    <file url="file://$PROJECT_DIR$/queries/cassandra_query.sql" value="6dc41ceb-c55d-43f9-82e5-90ef5ecc5503" />
+    <file url="file://$PROJECT_DIR$/queries/spark.sql" value="375687f8-47a5-4e48-ba52-be956fb8dac5" />
+  </component>
+</project>

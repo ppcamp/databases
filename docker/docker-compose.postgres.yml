@@ -1,0 +1,46 @@
+networks:
+  postgres:
+
+services:
+  #  https://github.com/citusdata/citus?tab=readme-ov-file#getting-started
+  psql-citus:
+    container_name: orchestrator
+    hostname: citus
+    image: citusdata/citus:latest
+    environment: &env
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydb
+    networks: 
+      - postgres
+    ports:
+      - "5432:5432"
+
+  node-1:
+    container_name: node-1
+    hostname: node-1
+    image: citusdata/citus:latest
+    environment: *env
+    networks:
+      - postgres
+    ports:
+      - "5433:5432"
+
+  node-2:
+    container_name: node-2
+    hostname: node-2
+    image: citusdata/citus:latest
+    environment: *env
+    networks:
+      - postgres
+    ports:
+      - "5434:5432"
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment: *env
+    networks:
+      - postgres
+    ports:
+      - "5431:5432"

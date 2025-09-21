@@ -1,0 +1,103 @@
+# yaml
+# docker-compose.cassandra.yml (updated with broadcast addresses)
+networks:
+  cassandra-network:
+    external: true
+
+services:
+  cassandra100:
+    image: cassandra:5
+    container_name: cassandra100
+    networks: [cassandra-network]
+    hostname: cassandra100
+    ports:
+      - "9042:9042"
+      - "9160:9160"
+    restart: unless-stopped
+    environment: &cassandraEnv
+      CASSANDRA_DC: US_EAST
+      CASSANDRA_RACK: RACK1
+      CASSANDRA_CLUSTER_NAME: GlobalCluster
+      CASSANDRA_SEEDS: "cassandra100,cassandra200"
+      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+      CASSANDRA_NUM_TOKENS: 128
+      JVM_EXTRA_OPTS: "-Xms256M -Xmx512M"
+      CASSANDRA_LISTEN_ADDRESS: auto
+      CASSANDRA_RPC_ADDRESS: 0.0.0.0
+      CASSANDRA_BROADCAST_ADDRESS: cassandra100
+      CASSANDRA_BROADCAST_RPC_ADDRESS: cassandra100
+
+  cassandra101:
+    image: cassandra:5
+    container_name: cassandra101
+    networks: [cassandra-network]
+    hostname: cassandra101
+    restart: unless-stopped
+    environment:
+      <<: *cassandraEnv
+      CASSANDRA_BROADCAST_ADDRESS: cassandra101
+      CASSANDRA_BROADCAST_RPC_ADDRESS: cassandra101
+    depends_on:
+      cassandra100:
+        condition: service_started
+
+  cassandra102:
+    image: cassandra:5
+    container_name: cassandra102
+    networks: [cassandra-network]
+    hostname: cassandra102
+    restart: unless-stopped
+    environment:
+      <<: *cassandraEnv
+      CASSANDRA_BROADCAST_ADDRESS: cassandra102
+      CASSANDRA_BROADCAST_RPC_ADDRESS: cassandra102
+    depends_on:
+      cassandra101:
+        condition: service_started
+
+  cassandra110:
+    image: cassandra:5
+    container_name: cassandra110
+    networks: [cassandra-network]
+    hostname: cassandra110
+    restart: unless-stopped
+    environment:
+      <<: *cassandraEnv
+      CASSANDRA_RACK: RACK2
+      CASSANDRA_BROADCAST_ADDRESS: cassandra110
+      CASSANDRA_BROADCAST_RPC_ADDRESS: cassandra110
+    depends_on:
+      cassandra100:
+        condition: service_started
+
+  cassandra200:
+    image: cassandra:5
+    container_name: cassandra200
+    networks: [cassandra-network]
+    hostname: cassandra200
+    restart: unless-stopped
+    environment:
+      <<: *cassandraEnv
+      CASSANDRA_DC: BR_SP
+      CASSANDRA_RACK: RACK1
+      CASSANDRA_BROADCAST_ADDRESS: cassandra200
+      CASSANDRA_BROADCAST_RPC_ADDRESS: cassandra200
+    depends_on:
+      cassandra100:
+        condition: service_started
+
+  cassandra201:
+    image: cassandra:5
+    container_name: cassandra201
+    networks: [cassandra-network]
+    hostname: cassandra201
+    restart: unless-stopped
+    environment:
+      <<: *cassandraEnv
+      CASSANDRA_DC: BR_SP
+      CASSANDRA_RACK: RACK1
+      CASSANDRA_BROADCAST_ADDRESS: cassandra201
+      CASSANDRA_BROADCAST_RPC_ADDRESS: cassandra201
+    depends_on:
+      cassandra200:
+        condition: service_started
